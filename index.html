@@ -3,25 +3,109 @@
 
 <head>
     <title>Nintendo DS Emulator</title>
+    <style>
+        body {
+            background: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        #menu {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            display: none;
+            text-align: center;
+        }
+
+        #menu button {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #menu button:hover {
+            background: #666;
+        }
+
+        input {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 95%;
+            color: white;
+        }
+    </style>
 </head>
 
-<body style="background: black;">
+<body>
     <desmond-player></desmond-player>
-    <input type="file" style="position: absolute; transform: translate(-50%, -50%); left: 50%; top: 95%; color: white;"></input>
+    <div id="menu"></div>
+    <input type="file">
     <script src="./ds.js"></script>
     <script>
-        document.querySelector("input").onchange = function() {
-            document.querySelector("desmond-player").loadURL(URL.createObjectURL(document.querySelector("input").files[0]))
-        }
-      
-        window.onload = function() {
-            setTimeout(function() {
-                document.querySelector("desmond-player").loadURL("./demos/menu.nds")
-                document.querySelector("desmond-player").shadowRoot.querySelector("#top").style = "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 30%;height: 40%;";
+        const files = [
+            "Animal-Crossing-Wild-World.nds",
+            "Flipnote-Studio.nds",
+            "Mario+Luigi-Bowsers-Inside-Story.nds",
+            "New-Super-Mario-Bros.nds",
+            "Tomodachi-Collection.nds",
+            "menu.nds",
+            "draw.nds"
+        ];
 
-                document.querySelector("desmond-player").shadowRoot.querySelector("#bottom").style = "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 70%;height: 40%;";
-            }, 1000)
+        const menu = document.getElementById("menu");
+
+        function checkFileExists(url) {
+            return fetch(url, { method: "HEAD" })
+                .then(response => response.ok)
+                .catch(() => false);
         }
+
+        async function showMenu() {
+            const availableFiles = [];
+
+            for (const file of files) {
+                const exists = await checkFileExists(`./demos/${file}`);
+                if (exists) availableFiles.push(file);
+            }
+
+            if (availableFiles.length > 0) {
+                menu.innerHTML = availableFiles
+                    .map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`)
+                    .join("");
+                menu.style.display = "block";
+            }
+        }
+
+        function loadGame(file) {
+            menu.style.display = "none";
+            const desmondPlayer = document.querySelector("desmond-player");
+            desmondPlayer.loadURL(`./demos/${file}`);
+            desmondPlayer.shadowRoot.querySelector("#top").style =
+                "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 30%;height: 40%;";
+            desmondPlayer.shadowRoot.querySelector("#bottom").style =
+                "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 70%;height: 40%;";
+        }
+
+        document.querySelector("input").onchange = function () {
+            const file = URL.createObjectURL(document.querySelector("input").files[0]);
+            document.querySelector("desmond-player").loadURL(file);
+        };
+
+        window.onload = function () {
+            showMenu();
+        };
     </script>
 </body>
+
 </html>
