@@ -10,7 +10,7 @@
             font-family: Arial, sans-serif;
         }
 
-        #menu, #control-config {
+        #menu {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -23,7 +23,7 @@
             text-align: center;
         }
 
-        #menu button, #control-config button {
+        #menu button {
             background: #444;
             color: white;
             border: none;
@@ -33,25 +33,16 @@
             cursor: pointer;
         }
 
-        #menu button:hover, #control-config button:hover {
+        #menu button:hover {
             background: #666;
         }
 
-        .on-screen-controls {
+        input {
             position: absolute;
-            bottom: 10%;
+            transform: translate(-50%, -50%);
             left: 50%;
-            transform: translateX(-50%);
-            display: none;
-        }
-
-        .on-screen-controls button {
-            margin: 5px;
-            padding: 10px 20px;
-            background: #222;
+            top: 95%;
             color: white;
-            border: none;
-            border-radius: 5px;
         }
     </style>
 </head>
@@ -59,20 +50,6 @@
 <body>
     <desmond-player></desmond-player>
     <div id="menu"></div>
-    <div id="control-config">
-        <h3>Configure Controls</h3>
-        <div id="key-bindings"></div>
-        <button onclick="saveControlConfig()">Save Configuration</button>
-        <button onclick="enableOnScreenControls()">Use On-Screen Controls</button>
-    </div>
-    <div class="on-screen-controls" id="on-screen-controls">
-        <button onclick="triggerKey('up')">↑</button>
-        <button onclick="triggerKey('left')">←</button>
-        <button onclick="triggerKey('right')">→</button>
-        <button onclick="triggerKey('down')">↓</button>
-        <button onclick="triggerKey('a')">A</button>
-        <button onclick="triggerKey('b')">B</button>
-    </div>
     <input type="file">
     <script src="./ds.js"></script>
     <script>
@@ -86,18 +63,7 @@
             "draw.nds"
         ];
 
-        const keyNameToKeyId = {
-            "right": 0, "left": 1, "down": 2, "up": 3,
-            "select": 4, "start": 5, "b": 6, "a": 7,
-            "y": 8, "x": 9, "l": 10, "r": 11, "debug": 12, "lid": 13
-        };
-
-        const emuKeyState = new Array(14);
-        const controlConfig = {};
-
         const menu = document.getElementById("menu");
-        const controlConfigMenu = document.getElementById("control-config");
-        const onScreenControls = document.getElementById("on-screen-controls");
 
         function checkFileExists(url) {
             return fetch(url, { method: "HEAD" })
@@ -114,61 +80,21 @@
             }
 
             if (availableFiles.length > 0) {
-                menu.innerHTML = `
-                    <h3>Select a Game</h3>
-                    ${availableFiles.map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`).join("")}
-                    <button onclick="showControlConfig()">Configure Controls</button>
-                `;
+                menu.innerHTML = availableFiles
+                    .map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`)
+                    .join("");
                 menu.style.display = "block";
             }
         }
 
         function loadGame(file) {
             menu.style.display = "none";
-            controlConfigMenu.style.display = "none";
-            onScreenControls.style.display = "none";
             const desmondPlayer = document.querySelector("desmond-player");
             desmondPlayer.loadURL(`./demos/${file}`);
-        }
-
-        function showControlConfig() {
-            menu.style.display = "none";
-            controlConfigMenu.innerHTML = `
-                <h3>Configure Controls</h3>
-                ${Object.keys(keyNameToKeyId).map(key => `
-                    <label>${key.toUpperCase()}:
-                        <input type="text" value="${controlConfig[key] || ''}" 
-                            onkeydown="setControlKey('${key}', event)">
-                    </label><br/>
-                `).join("")}
-                <button onclick="saveControlConfig()">Save Configuration</button>
-                <button onclick="enableOnScreenControls()">Use On-Screen Controls</button>
-            `;
-            controlConfigMenu.style.display = "block";
-        }
-
-        function setControlKey(key, event) {
-            event.preventDefault();
-            controlConfig[key] = event.key;
-        }
-
-        function saveControlConfig() {
-            localStorage.setItem("controlConfig", JSON.stringify(controlConfig));
-            alert("Controls saved!");
-            showMenu();
-        }
-
-        function enableOnScreenControls() {
-            onScreenControls.style.display = "block";
-            controlConfigMenu.style.display = "none";
-        }
-
-        function triggerKey(key) {
-            const keyId = keyNameToKeyId[key];
-            if (keyId !== undefined) {
-                emuKeyState[keyId] = true;
-                setTimeout(() => (emuKeyState[keyId] = false), 100);
-            }
+            desmondPlayer.shadowRoot.querySelector("#top").style =
+                "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 30%;height: 40%;";
+            desmondPlayer.shadowRoot.querySelector("#bottom").style =
+                "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 70%;height: 40%;";
         }
 
         document.querySelector("input").onchange = function () {
@@ -177,8 +103,6 @@
         };
 
         window.onload = function () {
-            const savedConfig = JSON.parse(localStorage.getItem("controlConfig"));
-            if (savedConfig) Object.assign(controlConfig, savedConfig);
             showMenu();
         };
     </script>
