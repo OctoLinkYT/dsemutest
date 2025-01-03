@@ -37,6 +37,24 @@
             background: #666;
         }
 
+        #settings {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+
+        #settings input {
+            margin: 5px;
+            padding: 5px;
+        }
+
         input {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -50,6 +68,17 @@
 <body>
     <desmond-player></desmond-player>
     <div id="menu"></div>
+    <div id="settings">
+        <h2>Settings</h2>
+        <label>Right: <input type="text" id="rightKey" value="ArrowRight"></label><br>
+        <label>Left: <input type="text" id="leftKey" value="ArrowLeft"></label><br>
+        <label>Up: <input type="text" id="upKey" value="ArrowUp"></label><br>
+        <label>Down: <input type="text" id="downKey" value="ArrowDown"></label><br>
+        <label>A: <input type="text" id="aKey" value="KeyZ"></label><br>
+        <label>B: <input type="text" id="bKey" value="KeyX"></label><br>
+        <button onclick="saveSettings()">Save</button>
+        <button onclick="closeSettings()">Close</button>
+    </div>
     <input type="file">
     <script src="./ds.js"></script>
     <script>
@@ -64,6 +93,19 @@
         ];
 
         const menu = document.getElementById("menu");
+        const settings = document.getElementById("settings");
+
+        // Default key bindings (can be changed in the settings)
+        const defaultKeyBindings = {
+            right: "ArrowRight",
+            left: "ArrowLeft",
+            up: "ArrowUp",
+            down: "ArrowDown",
+            a: "KeyZ",
+            b: "KeyX"
+        };
+
+        let keyBindings = { ...defaultKeyBindings };
 
         function checkFileExists(url) {
             return fetch(url, { method: "HEAD" })
@@ -105,6 +147,34 @@
         window.onload = function () {
             showMenu();
         };
+
+        function openSettings() {
+            document.getElementById("menu").style.display = "none";
+            settings.style.display = "block";
+        }
+
+        function closeSettings() {
+            settings.style.display = "none";
+            document.getElementById("menu").style.display = "block";
+        }
+
+        function saveSettings() {
+            keyBindings.right = document.getElementById("rightKey").value;
+            keyBindings.left = document.getElementById("leftKey").value;
+            keyBindings.up = document.getElementById("upKey").value;
+            keyBindings.down = document.getElementById("downKey").value;
+            keyBindings.a = document.getElementById("aKey").value;
+            keyBindings.b = document.getElementById("bKey").value;
+            alert("Keybindings saved!");
+            closeSettings();
+        }
+
+        // Button to open settings menu
+        const settingsButton = document.createElement("button");
+        settingsButton.textContent = "Settings";
+        settingsButton.onclick = openSettings;
+        document.body.appendChild(settingsButton);
+
     </script>
 </body>
 
