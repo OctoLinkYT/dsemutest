@@ -37,15 +37,6 @@
             background: #666;
         }
 
-        #menu .controls {
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        #menu .controls button {
-            width: 100%;
-        }
-
         #resetButton {
             position: fixed;
             top: 10px;
@@ -58,30 +49,86 @@
             cursor: pointer;
         }
 
-        input {
+        #controls {
+            display: none;
+            position: fixed;
+            bottom: 10%;
+            width: 100%;
+            text-align: center;
+        }
+
+        .dpad {
+            display: inline-block;
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .dpad button {
             position: absolute;
-            transform: translate(-50%, -50%);
-            left: 50%;
-            top: 95%;
+            width: 30px;
+            height: 30px;
+            background: gray;
+            border: none;
+            border-radius: 5px;
             color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .dpad .up {
+            top: 0;
+            left: 35px;
+        }
+
+        .dpad .down {
+            bottom: 0;
+            left: 35px;
+        }
+
+        .dpad .left {
+            left: 0;
+            top: 35px;
+        }
+
+        .dpad .right {
+            right: 0;
+            top: 35px;
+        }
+
+        .actions {
+            display: inline-block;
+            margin-left: 50px;
+        }
+
+        .actions button {
+            display: block;
+            width: 50px;
+            height: 50px;
+            background: gray;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 14px;
+            margin: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
     <desmond-player></desmond-player>
-    <div id="menu">
-        <div>
-            <h2>Game Menu</h2>
-            <div class="controls">
-                <div><button>Right: ArrowRight</button></div>
-                <div><button>Left: ArrowLeft</button></div>
-                <div><button>Up: ArrowUp</button></div>
-                <div><button>Down: ArrowDown</button></div>
-                <div><button>A: KeyZ</button></div>
-                <div><button>B: KeyX</button></div>
-                <div><button id="toggleMobileControls">Enable Mobile Controls</button></div>
-            </div>
+    <div id="menu"></div>
+    <div id="controls">
+        <div class="dpad">
+            <button class="up" data-key="ArrowUp">▲</button>
+            <button class="down" data-key="ArrowDown">▼</button>
+            <button class="left" data-key="ArrowLeft">◀</button>
+            <button class="right" data-key="ArrowRight">▶</button>
+        </div>
+        <div class="actions">
+            <button data-key="KeyZ">A</button>
+            <button data-key="KeyX">B</button>
         </div>
     </div>
     <input type="file">
@@ -99,6 +146,7 @@
         ];
 
         const menu = document.getElementById("menu");
+        const controls = document.getElementById("controls");
         const toggleMobileControlsButton = document.getElementById("toggleMobileControls");
 
         let mobileControlsEnabled = false;
@@ -110,40 +158,21 @@
         }
 
         async function showMenu() {
-            const availableFiles = [];
-
-            for (const file of files) {
-                const exists = await checkFileExists(`./demos/${file}`);
-                if (exists) availableFiles.push(file);
-            }
-
-            if (availableFiles.length > 0) {
-                menu.innerHTML = availableFiles
-                    .map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`)
-                    .join("");
-                menu.innerHTML += `
-                    <div class="controls">
-                        <div><button>Right: ArrowRight</button></div>
-                        <div><button>Left: ArrowLeft</button></div>
-                        <div><button>Up: ArrowUp</button></div>
-                        <div><button>Down: ArrowDown</button></div>
-                        <div><button>A: KeyZ</button></div>
-                        <div><button>B: KeyX</button></div>
-                        <div><button id="toggleMobileControls">Enable Mobile Controls</button></div>
-                    </div>
-                `;
-                menu.style.display = "block";
-            }
+            menu.innerHTML = `
+                <div>
+                    <h2>Select a Game</h2>
+                    ${files.map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`).join("")}
+                    <br><br>
+                    <button id="toggleMobileControls">Enable Mobile Controls</button>
+                </div>
+            `;
+            menu.style.display = "block";
         }
 
         function loadGame(file) {
             menu.style.display = "none";
             const desmondPlayer = document.querySelector("desmond-player");
             desmondPlayer.loadURL(`./demos/${file}`);
-            desmondPlayer.shadowRoot.querySelector("#top").style =
-                "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 30%;height: 40%;";
-            desmondPlayer.shadowRoot.querySelector("#bottom").style =
-                "position: fixed;transform: translate(-50%, -50%);width: 40%;left: 50%;top: 70%;height: 40%;";
         }
 
         document.querySelector("input").onchange = function () {
@@ -151,22 +180,26 @@
             document.querySelector("desmond-player").loadURL(file);
         };
 
+        // Mobile controls toggle handler
+        document.body.addEventListener("click", (e) => {
+            if (e.target.id === "toggleMobileControls") {
+                mobileControlsEnabled = !mobileControlsEnabled;
+                controls.style.display = mobileControlsEnabled ? "block" : "none";
+                e.target.textContent = mobileControlsEnabled ? "Disable Mobile Controls" : "Enable Mobile Controls";
+            }
+        });
+
+        // Simulate keypresses with on-screen buttons
+        controls.addEventListener("click", (e) => {
+            const key = e.target.dataset.key;
+            if (key) {
+                const event = new KeyboardEvent("keydown", { key });
+                document.dispatchEvent(event);
+            }
+        });
+
         window.onload = function () {
             showMenu();
-        };
-
-        // Mobile controls toggle handler
-        toggleMobileControlsButton.onclick = function () {
-            mobileControlsEnabled = !mobileControlsEnabled;
-            if (mobileControlsEnabled) {
-                toggleMobileControlsButton.textContent = "Disable Mobile Controls";
-                alert("Mobile controls enabled. You can now use the on-screen buttons.");
-                // Enable on-screen buttons for mobile control (implement the on-screen controls here)
-            } else {
-                toggleMobileControlsButton.textContent = "Enable Mobile Controls";
-                alert("Mobile controls disabled. You can now use keyboard controls.");
-                // Disable on-screen buttons for mobile control
-            }
         };
     </script>
 </body>
