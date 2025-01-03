@@ -117,7 +117,10 @@
 </head>
 
 <body>
-    <desmond-player></desmond-player>
+    <div id="player">
+        <canvas id="top" width="256" height="192"></canvas>
+        <canvas id="bottom" width="256" height="192"></canvas>
+    </div>
     <div id="menu"></div>
     <div id="controls">
         <div class="dpad">
@@ -147,8 +150,6 @@
 
         const menu = document.getElementById("menu");
         const controls = document.getElementById("controls");
-        const toggleMobileControlsButton = document.getElementById("toggleMobileControls");
-
         let mobileControlsEnabled = false;
 
         function checkFileExists(url) {
@@ -171,16 +172,15 @@
 
         function loadGame(file) {
             menu.style.display = "none";
-            const desmondPlayer = document.querySelector("desmond-player");
-            desmondPlayer.loadURL(`./demos/${file}`);
+            const desmondPlayer = document.getElementById("player");
+            desmondPlayer.dataset.gameUrl = `./demos/${file}`;
         }
 
         document.querySelector("input").onchange = function () {
             const file = URL.createObjectURL(document.querySelector("input").files[0]);
-            document.querySelector("desmond-player").loadURL(file);
+            document.getElementById("player").dataset.gameUrl = file;
         };
 
-        // Mobile controls toggle handler
         document.body.addEventListener("click", (e) => {
             if (e.target.id === "toggleMobileControls") {
                 mobileControlsEnabled = !mobileControlsEnabled;
@@ -189,14 +189,17 @@
             }
         });
 
-        // Simulate keypresses with on-screen buttons
-        controls.addEventListener("click", (e) => {
+        controls.addEventListener("mousedown", handleControlEvent);
+        controls.addEventListener("mouseup", handleControlEvent);
+
+        function handleControlEvent(e) {
             const key = e.target.dataset.key;
             if (key) {
-                const event = new KeyboardEvent("keydown", { key });
+                const eventType = e.type === "mousedown" ? "keydown" : "keyup";
+                const event = new KeyboardEvent(eventType, { key });
                 document.dispatchEvent(event);
             }
-        });
+        }
 
         window.onload = function () {
             showMenu();
