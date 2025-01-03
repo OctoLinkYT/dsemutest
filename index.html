@@ -37,24 +37,22 @@
             background: #666;
         }
 
-        #settings {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-            text-align: center;
+        #menu .controls {
+            margin-top: 20px;
+            text-align: left;
         }
 
-        #settings button {
-            margin: 5px;
-            padding: 5px;
-            background: #444;
+        #menu .controls button {
+            width: 100%;
+        }
+
+        #resetButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: red;
             color: white;
+            padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -72,21 +70,22 @@
 
 <body>
     <desmond-player></desmond-player>
-    <div id="menu"></div>
-    <div id="settings">
-        <h2>Settings</h2>
-        <div id="keybinds">
-            <div><button id="rightKeyBtn">Right: ArrowRight</button></div>
-            <div><button id="leftKeyBtn">Left: ArrowLeft</button></div>
-            <div><button id="upKeyBtn">Up: ArrowUp</button></div>
-            <div><button id="downKeyBtn">Down: ArrowDown</button></div>
-            <div><button id="aKeyBtn">A: KeyZ</button></div>
-            <div><button id="bKeyBtn">B: KeyX</button></div>
+    <div id="menu">
+        <div>
+            <h2>Game Menu</h2>
+            <div class="controls">
+                <div><button>Right: ArrowRight</button></div>
+                <div><button>Left: ArrowLeft</button></div>
+                <div><button>Up: ArrowUp</button></div>
+                <div><button>Down: ArrowDown</button></div>
+                <div><button>A: KeyZ</button></div>
+                <div><button>B: KeyX</button></div>
+                <div><button id="toggleMobileControls">Enable Mobile Controls</button></div>
+            </div>
         </div>
-        <button onclick="saveSettings()">Save</button>
-        <button onclick="closeSettings()">Close</button>
     </div>
     <input type="file">
+    <button id="resetButton" onclick="location.reload();">Reset</button>
     <script src="./ds.js"></script>
     <script>
         const files = [
@@ -100,20 +99,9 @@
         ];
 
         const menu = document.getElementById("menu");
-        const settings = document.getElementById("settings");
+        const toggleMobileControlsButton = document.getElementById("toggleMobileControls");
 
-        // Default key bindings (can be changed in the settings)
-        const defaultKeyBindings = {
-            right: "ArrowRight",
-            left: "ArrowLeft",
-            up: "ArrowUp",
-            down: "ArrowDown",
-            a: "KeyZ",
-            b: "KeyX"
-        };
-
-        let keyBindings = { ...defaultKeyBindings };
-        let waitingForKey = null;
+        let mobileControlsEnabled = false;
 
         function checkFileExists(url) {
             return fetch(url, { method: "HEAD" })
@@ -133,6 +121,17 @@
                 menu.innerHTML = availableFiles
                     .map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`)
                     .join("");
+                menu.innerHTML += `
+                    <div class="controls">
+                        <div><button>Right: ArrowRight</button></div>
+                        <div><button>Left: ArrowLeft</button></div>
+                        <div><button>Up: ArrowUp</button></div>
+                        <div><button>Down: ArrowDown</button></div>
+                        <div><button>A: KeyZ</button></div>
+                        <div><button>B: KeyX</button></div>
+                        <div><button id="toggleMobileControls">Enable Mobile Controls</button></div>
+                    </div>
+                `;
                 menu.style.display = "block";
             }
         }
@@ -154,62 +153,21 @@
 
         window.onload = function () {
             showMenu();
-            updateKeyBindingsUI();
         };
 
-        function openSettings() {
-            document.getElementById("menu").style.display = "none";
-            settings.style.display = "block";
-        }
-
-        function closeSettings() {
-            settings.style.display = "none";
-            document.getElementById("menu").style.display = "block";
-        }
-
-        function saveSettings() {
-            // No changes needed, keybindings are updated in real time
-            alert("Keybindings saved!");
-            closeSettings();
-        }
-
-        function updateKeyBindingsUI() {
-            document.getElementById("rightKeyBtn").textContent = `Right: ${keyBindings.right}`;
-            document.getElementById("leftKeyBtn").textContent = `Left: ${keyBindings.left}`;
-            document.getElementById("upKeyBtn").textContent = `Up: ${keyBindings.up}`;
-            document.getElementById("downKeyBtn").textContent = `Down: ${keyBindings.down}`;
-            document.getElementById("aKeyBtn").textContent = `A: ${keyBindings.a}`;
-            document.getElementById("bKeyBtn").textContent = `B: ${keyBindings.b}`;
-        }
-
-        function startKeyBindingChange(key) {
-            waitingForKey = key;
-            alert(`Press the new key for ${key}`);
-        }
-
-        // Event listeners for changing keybindings
-        document.getElementById("rightKeyBtn").onclick = function() { startKeyBindingChange('right'); };
-        document.getElementById("leftKeyBtn").onclick = function() { startKeyBindingChange('left'); };
-        document.getElementById("upKeyBtn").onclick = function() { startKeyBindingChange('up'); };
-        document.getElementById("downKeyBtn").onclick = function() { startKeyBindingChange('down'); };
-        document.getElementById("aKeyBtn").onclick = function() { startKeyBindingChange('a'); };
-        document.getElementById("bKeyBtn").onclick = function() { startKeyBindingChange('b'); };
-
-        // Detect key press for keybinding changes
-        window.addEventListener('keydown', function(event) {
-            if (waitingForKey) {
-                keyBindings[waitingForKey] = event.code;
-                updateKeyBindingsUI();
-                waitingForKey = null;  // Reset after key is set
+        // Mobile controls toggle handler
+        toggleMobileControlsButton.onclick = function () {
+            mobileControlsEnabled = !mobileControlsEnabled;
+            if (mobileControlsEnabled) {
+                toggleMobileControlsButton.textContent = "Disable Mobile Controls";
+                alert("Mobile controls enabled. You can now use the on-screen buttons.");
+                // Enable on-screen buttons for mobile control (implement the on-screen controls here)
+            } else {
+                toggleMobileControlsButton.textContent = "Enable Mobile Controls";
+                alert("Mobile controls disabled. You can now use keyboard controls.");
+                // Disable on-screen buttons for mobile control
             }
-        });
-
-        // Button to open settings menu
-        const settingsButton = document.createElement("button");
-        settingsButton.textContent = "Settings";
-        settingsButton.onclick = openSettings;
-        document.body.appendChild(settingsButton);
-
+        };
     </script>
 </body>
 
