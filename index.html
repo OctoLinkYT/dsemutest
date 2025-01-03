@@ -50,9 +50,14 @@
             text-align: center;
         }
 
-        #settings input {
+        #settings button {
             margin: 5px;
             padding: 5px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         input {
@@ -70,12 +75,14 @@
     <div id="menu"></div>
     <div id="settings">
         <h2>Settings</h2>
-        <label>Right: <input type="text" id="rightKey" value="ArrowRight"></label><br>
-        <label>Left: <input type="text" id="leftKey" value="ArrowLeft"></label><br>
-        <label>Up: <input type="text" id="upKey" value="ArrowUp"></label><br>
-        <label>Down: <input type="text" id="downKey" value="ArrowDown"></label><br>
-        <label>A: <input type="text" id="aKey" value="KeyZ"></label><br>
-        <label>B: <input type="text" id="bKey" value="KeyX"></label><br>
+        <div id="keybinds">
+            <div><button id="rightKeyBtn">Right: ArrowRight</button></div>
+            <div><button id="leftKeyBtn">Left: ArrowLeft</button></div>
+            <div><button id="upKeyBtn">Up: ArrowUp</button></div>
+            <div><button id="downKeyBtn">Down: ArrowDown</button></div>
+            <div><button id="aKeyBtn">A: KeyZ</button></div>
+            <div><button id="bKeyBtn">B: KeyX</button></div>
+        </div>
         <button onclick="saveSettings()">Save</button>
         <button onclick="closeSettings()">Close</button>
     </div>
@@ -106,6 +113,7 @@
         };
 
         let keyBindings = { ...defaultKeyBindings };
+        let waitingForKey = null;
 
         function checkFileExists(url) {
             return fetch(url, { method: "HEAD" })
@@ -146,6 +154,7 @@
 
         window.onload = function () {
             showMenu();
+            updateKeyBindingsUI();
         };
 
         function openSettings() {
@@ -159,15 +168,41 @@
         }
 
         function saveSettings() {
-            keyBindings.right = document.getElementById("rightKey").value;
-            keyBindings.left = document.getElementById("leftKey").value;
-            keyBindings.up = document.getElementById("upKey").value;
-            keyBindings.down = document.getElementById("downKey").value;
-            keyBindings.a = document.getElementById("aKey").value;
-            keyBindings.b = document.getElementById("bKey").value;
+            // No changes needed, keybindings are updated in real time
             alert("Keybindings saved!");
             closeSettings();
         }
+
+        function updateKeyBindingsUI() {
+            document.getElementById("rightKeyBtn").textContent = `Right: ${keyBindings.right}`;
+            document.getElementById("leftKeyBtn").textContent = `Left: ${keyBindings.left}`;
+            document.getElementById("upKeyBtn").textContent = `Up: ${keyBindings.up}`;
+            document.getElementById("downKeyBtn").textContent = `Down: ${keyBindings.down}`;
+            document.getElementById("aKeyBtn").textContent = `A: ${keyBindings.a}`;
+            document.getElementById("bKeyBtn").textContent = `B: ${keyBindings.b}`;
+        }
+
+        function startKeyBindingChange(key) {
+            waitingForKey = key;
+            alert(`Press the new key for ${key}`);
+        }
+
+        // Event listeners for changing keybindings
+        document.getElementById("rightKeyBtn").onclick = function() { startKeyBindingChange('right'); };
+        document.getElementById("leftKeyBtn").onclick = function() { startKeyBindingChange('left'); };
+        document.getElementById("upKeyBtn").onclick = function() { startKeyBindingChange('up'); };
+        document.getElementById("downKeyBtn").onclick = function() { startKeyBindingChange('down'); };
+        document.getElementById("aKeyBtn").onclick = function() { startKeyBindingChange('a'); };
+        document.getElementById("bKeyBtn").onclick = function() { startKeyBindingChange('b'); };
+
+        // Detect key press for keybinding changes
+        window.addEventListener('keydown', function(event) {
+            if (waitingForKey) {
+                keyBindings[waitingForKey] = event.code;
+                updateKeyBindingsUI();
+                waitingForKey = null;  // Reset after key is set
+            }
+        });
 
         // Button to open settings menu
         const settingsButton = document.createElement("button");
