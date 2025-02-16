@@ -48,89 +48,12 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
-        #controls {
-            display: none;
-            position: fixed;
-            bottom: 10%;
-            width: 100%;
-            text-align: center;
-        }
-
-        .dpad {
-            display: inline-block;
-            position: relative;
-            width: 100px;
-            height: 100px;
-        }
-
-        .dpad button {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: gray;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .dpad .up {
-            top: 0;
-            left: 35px;
-        }
-
-        .dpad .down {
-            bottom: 0;
-            left: 35px;
-        }
-
-        .dpad .left {
-            left: 0;
-            top: 35px;
-        }
-
-        .dpad .right {
-            right: 0;
-            top: 35px;
-        }
-
-        .actions {
-            display: inline-block;
-            margin-left: 50px;
-        }
-
-        .actions button {
-            display: block;
-            width: 50px;
-            height: 50px;
-            background: gray;
-            border: none;
-            border-radius: 50%;
-            color: white;
-            font-size: 14px;
-            margin: 5px;
-            cursor: pointer;
-        }
     </style>
 </head>
 
 <body>
     <desmond-player></desmond-player>
     <div id="menu"></div>
-    <div id="controls">
-        <div class="dpad">
-            <button class="up" data-key="ArrowUp">▲</button>
-            <button class="down" data-key="ArrowDown">▼</button>
-            <button class="left" data-key="ArrowLeft">◀</button>
-            <button class="right" data-key="ArrowRight">▶</button>
-        </div>
-        <div class="actions">
-            <button data-key="KeyZ">A</button>
-            <button data-key="KeyX">B</button>
-        </div>
-    </div>
     <input type="file">
     <button id="resetButton" onclick="location.reload();">Reset</button>
     <script src="./ds.js"></script>
@@ -146,24 +69,12 @@
         ];
 
         const menu = document.getElementById("menu");
-        const controls = document.getElementById("controls");
-        const toggleMobileControlsButton = document.getElementById("toggleMobileControls");
 
-        let mobileControlsEnabled = false;
-
-        function checkFileExists(url) {
-            return fetch(url, { method: "HEAD" })
-                .then(response => response.ok)
-                .catch(() => false);
-        }
-
-        async function showMenu() {
+        function showMenu() {
             menu.innerHTML = `
                 <div>
                     <h2>Select a Game</h2>
                     ${files.map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`).join("")}
-                    <br><br>
-                    <button id="toggleMobileControls">Enable Mobile Controls</button>
                 </div>
             `;
             menu.style.display = "block";
@@ -176,27 +87,9 @@
         }
 
         document.querySelector("input").onchange = function () {
-            const file = URL.createObjectURL(document.querySelector("input").files[0]);
+            const file = URL.createObjectURL(this.files[0]);
             document.querySelector("desmond-player").loadURL(file);
         };
-
-        // Mobile controls toggle handler
-        document.body.addEventListener("click", (e) => {
-            if (e.target.id === "toggleMobileControls") {
-                mobileControlsEnabled = !mobileControlsEnabled;
-                controls.style.display = mobileControlsEnabled ? "block" : "none";
-                e.target.textContent = mobileControlsEnabled ? "Disable Mobile Controls" : "Enable Mobile Controls";
-            }
-        });
-
-        // Simulate keypresses with on-screen buttons
-        controls.addEventListener("click", (e) => {
-            const key = e.target.dataset.key;
-            if (key) {
-                const event = new KeyboardEvent("keydown", { key });
-                document.dispatchEvent(event);
-            }
-        });
 
         window.onload = function () {
             showMenu();
