@@ -119,19 +119,7 @@
 <body>
     <desmond-player></desmond-player>
     <div id="menu"></div>
-    <div id="controls">
-        <div class="dpad">
-            <button class="up" data-key="ArrowUp">▲</button>
-            <button class="down" data-key="ArrowDown">▼</button>
-            <button class="left" data-key="ArrowLeft">◀</button>
-            <button class="right" data-key="ArrowRight">▶</button>
-        </div>
-        <div class="actions">
-            <button data-key="KeyZ">A</button>
-            <button data-key="KeyX">B</button>
-        </div>
     </div>
-    <input type="file">
     <button id="resetButton" onclick="location.reload();">Reset</button>
     <script src="./ds.js"></script>
     <script>
@@ -163,7 +151,6 @@
                     <h2>Select a Game</h2>
                     ${files.map(file => `<button onclick="loadGame('${file}')">${file.replace(".nds", "").replace(/-/g, " ")}</button>`).join("")}
                     <br><br>
-                    <button id="toggleMobileControls">Enable Mobile Controls</button>
                 </div>
             `;
             menu.style.display = "block";
@@ -179,24 +166,6 @@
             const file = URL.createObjectURL(document.querySelector("input").files[0]);
             document.querySelector("desmond-player").loadURL(file);
         };
-
-        // Mobile controls toggle handler
-        document.body.addEventListener("click", (e) => {
-            if (e.target.id === "toggleMobileControls") {
-                mobileControlsEnabled = !mobileControlsEnabled;
-                controls.style.display = mobileControlsEnabled ? "block" : "none";
-                e.target.textContent = mobileControlsEnabled ? "Disable Mobile Controls" : "Enable Mobile Controls";
-            }
-        });
-
-        // Simulate keypresses with on-screen buttons
-        controls.addEventListener("click", (e) => {
-            const key = e.target.dataset.key;
-            if (key) {
-                const event = new KeyboardEvent("keydown", { key });
-                document.dispatchEvent(event);
-            }
-        });
 
         window.onload = function () {
             showMenu();
